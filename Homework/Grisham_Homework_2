@@ -1,0 +1,20 @@
+1: Basic Building Blocks
+-Showed the math operators within RStudio and how previous commands are
+saved.
+
+2: Workspace and Files
+-Demonstrated how to create and navigate through a directory and files within.
+
+3: Sequences of numbers
+-Introduced how to use ':', length(), seq(), seq_along(), and rep(), for 
+sequencing numbers
+
+4: Vectors
+-Learnt how to create and modify vectors of numbers and characters, as well as
+using logical operators on vectors
+
+5: Missing Values
+-Showed the use of NA and NaN in vectors, and how to simply parse through vectors
+with both numbers and NA/NaN values
+
+6: 
