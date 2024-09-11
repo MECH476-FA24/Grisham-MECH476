@@ -49,7 +49,7 @@ car every year.
 # do you need to install each R package?
 library(readr)
 library(dplyr)
-library(tibble)
+library(tibble) #XL: When you load the dplyr package in R, it automatically includes the tibble package because tibble is a dependency of dplyr. So, you don’t need to load tibble separately if you're already loading dplyr.
 library(tidyr)
 # load packages for current R session
 ```
@@ -197,7 +197,7 @@ universal_gas_constant <- 22.4136
 temp_celsius <- 10
 temp_kelvin <- 273.15 + temp_celsius
 
-
+#XL: Did you miss your code here?
 ```
 
 \newpage
