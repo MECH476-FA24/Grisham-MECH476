@@ -47,7 +47,10 @@ car every year.
 
 ```{r load-packages}
 # do you need to install each R package?
-
+library(readr)
+library(dplyr)
+library(tibble)
+library(tidyr)
 # load packages for current R session
 ```
 
@@ -74,15 +77,12 @@ different time scales, it would be important to include that information in the
 variable name (e.g., `ozone_ppm_hourly`). 
 
 ```{r import-data}
-library(readr)
-library(dplyr)
-library(tibble)
-data <- read_csv("ftc_o3.csv")
-ozone_data <- data %>%
+ozone_data <- read_csv("ftc_o3.csv") %>%
   select(sample_measurement, datetime) %>%
   drop_na() %>%
-  rename(ozone_ppm_hourly = sample_measurement)
+  rename(ozone_ppm = sample_measurement)
 
+str(ozone_data)
 # ozone: import, select, drop missing observations, rename
  # use relative pathname
  # select needed variables 
@@ -99,12 +99,10 @@ were no missing values for `datetime`.
 
 ```{r missing-data}
 # examine tibble
-library(dplyr)
-
-nrow_before <- nrow(data)
-nrow_after <- nrow(ozone_data)
-obs_drop <- nrow_before - nrow_after
-print(paste("The number of observations dropped are", obs_drop),quote = FALSE)
+missing_obs_before <- read_csv("ftc_o3.csv") %>%
+  summarise(missing_obs_before = sum(is.na(sample_measurement))) %>%
+  pull(missing_obs_before)
+missing_obs_before
 # calculate number of missing observations 
 ```
 
@@ -118,18 +116,20 @@ to a separate object.
 
 ```{r extract-max}
 # extract top ten ozone values and save them to df
-df_max <- ozone_data %>%
-  slice_max(order_by = ozone_ppm_hourly, n = 10)
-print(df_max)
+top_10 <- ozone_data %>%
+  slice_max(order_by = ozone_ppm, n = 10)
+
+top_10
 ```
 
 Now, complete the same process for the bottom ten ozone values.
 
 ```{r extract-min}
 # extract bottom ten ozone values and save them to df
-df_min <- ozone_data %>%
-  slice_min(order_by = ozone_ppm_hourly, n = 10)
-print(df_min)
+bottom_10 <- ozone_data %>%
+  slice_min(order_by = ozone_ppm, n = 10)
+
+bottom_10
 ```
 
 Do the highest and lowest values tend to occur at certain times of the day? 
@@ -142,10 +142,22 @@ occur? The lowest?
 ```{r high-low}
 # extract date/time of highest ozone concentration
 
+day_high <- ozone_data %>%
+  slice_max(order_by = ozone_ppm, n = 1) %>%
+  select(datetime, ozone_ppm) %>%
+  select(datetime)
 
-print(paste("The highest point of the day occurs at", high_day, "and the lowest point of the day occurs at", df_min))
-
+ 
 # extract date/time of lowest ozone concentration
+
+day_low <- ozone_data %>%
+  slice_min(order_by = ozone_ppm) %>%
+  select(datetime, ozone_ppm) %>%
+  slice_head(n = 1) %>%
+  select(datetime)
+print(day_high)
+print(day_low)
+
 ```
 
 # Question 4: Mutate
@@ -179,6 +191,12 @@ $$
 
 ```{r convert-ozone}
 # create new variable of ug/m3 from ppm and overwrite dataset
+molecular_weight_ozone <- 47.998
+pressure_fort_collins <- 637
+universal_gas_constant <- 22.4136
+temp_celsius <- 10
+temp_kelvin <- 273.15 + temp_celsius
+
 
 ```
 
