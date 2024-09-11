@@ -17,4 +17,23 @@ using logical operators on vectors
 -Showed the use of NA and NaN in vectors, and how to simply parse through vectors
 with both numbers and NA/NaN values
 
-6: 
+6: Subsetting vectors
+-How to create, and index vectors, and also combine two vectors and test
+the similarity of vectors
+
+7: Matrices and data frames
+-Turned vectors into matrixes and then into a data frame, slightly confusing with
+how RStudio makes assumptions for classifications, and how simple it is to modify
+the matrix.
+
+8: Logic
+-Pretty straight forward for using logical functions such as TRUE, FALSE, &, OR,
+XOR, etc...
+
+9: Functions
+-In this lesson I learnt how to create functions, how to nest them in other functions, 
+and how to modify functions.
+
+12: Looking at data
+-This lesson showed the basics of how to parse through a large data set and 
+efficiently get important information from it.
