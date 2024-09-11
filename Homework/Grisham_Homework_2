@@ -17,7 +17,11 @@ using logical operators on vectors
 -Showed the use of NA and NaN in vectors, and how to simply parse through vectors
 with both numbers and NA/NaN values
 
+<<<<<<< HEAD
 6: Subsetting vectors
+=======
+6: sSubsetting vectors
+>>>>>>> 8bdafdb1c2fa763733e5a025d3bf62fb697b1c2e
 -How to create, and index vectors, and also combine two vectors and test
 the similarity of vectors
 
@@ -36,4 +40,8 @@ and how to modify functions.
 
 12: Looking at data
 -This lesson showed the basics of how to parse through a large data set and 
+<<<<<<< HEAD
 efficiently get important information from it.
+=======
+efficiently get important information from it.
+>>>>>>> 8bdafdb1c2fa763733e5a025d3bf62fb697b1c2e
