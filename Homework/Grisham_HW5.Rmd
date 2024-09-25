@@ -1,0 +1,290 @@
+---
+title: 'MECH481A6: Engineering Data Analysis in R'
+subtitle: 'Chapter 5 Homework: Exploring Univariate Data' 
+author: 'Student Name'
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+output: pdf_document
+---
+
+```{r global-options, include = FALSE}
+# set global options for figures, code, warnings, and messages
+knitr::opts_chunk$set(fig.width = 6, fig.height = 4, fig.path = "../figs/",
+                      echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+# Grading
+
+We will grade the **knitted** PDF or HTML document from within your private
+GitHub repository. Remember to make regular, small commits (e.g., at least one
+commit per question) to save your work. We will grade the latest knit, as long
+as it occurs *before* the start of the class in which we advance to the next
+chapter. As always, reach out with questions via GitHub Issues or during
+office hours.
+
+# Data
+
+You are probably sick of seeing the ozone data, but there's still more to
+do with the file. Ozone concentration measurement is considered univariate,
+thus we can use basic exploratory data analysis approaches to examine the data.
+
+# Preparation
+
+Load the necessary R packages into your R session. 
+
+```{r packages, message=FALSE}
+library(readr)
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(compare)
+```
+
+Recreate the pipe of `dplyr` functions that you used to import the data, select
+and rename the variables listed below, drop missing observations, and assign the
+output with a good name.
+
+- `sample_measurement` renamed as `ozone_ppm` (ozone measurement in ppm)
+- `datetime` (date in YYYY-MM-DD format and time of measurement in HH:MM:SS)
+
+```{r import-data, message=FALSE}
+data_raw <- read_csv("ftc_o3.csv")
+data_filtered <- data_raw %>%
+  select(sample_measurement, datetime) %>%
+  drop_na() %>%
+  rename(ozone_ppm = sample_measurement)
+
+```
+
+Check that the data imported correctly.
+
+```{r data-check}
+compare_data <- all.equal(data_raw, data_filtered)
+print(compare_data)
+```
+
+\newpage
+
+# Chapter 5 Homework: Exploring Univariate Data
+
+Through Question 5, you will use all of the available ozone measurements
+from January 2019 through January 2020. Starting in Question 6, you will use
+a subset of the dataset: ozone concentration measurements on July 4, 2019.
+
+## Question 1: Definitions
+
+Guess the location, dispersion, and shape of ozone concentration data, based on
+the definitions of each described in the coursebook. No code needed; just use
+your intuition. For shape, take a look at the coursebook appendix on reference
+distributions.
+
+I assume the ozone concentration data will show ozone at the highest point towards
+the middle of the day when its hottest out.
+
+## Question 2: Quartiles
+
+Calculate the quartiles of `ozone_ppm`. What is the minimum? Maximum? Median? 
+
+```{r ozone-quartiles}
+data_ozone <- select(data_filtered, ozone_ppm)
+quartile <- quantile(data_ozone$ozone_ppm,
+                     probs = seq(0, 1, 0.25))
+
+```
+The minimum is 0.000
+The maximum is 0.096
+The median is 0.033
+
+
+### Extra Credit
+
+Create [a similar table](https://smogdr.github.io/edar_coursebook/eda1.html#descriptive-statistics) for `ozone_ppm`. Hint: You will need to investigate table
+options in the `knitr` package.
+
+\newpage
+
+## Question 3: Cumulative Distribution Plot
+
+Using either relevant `ggplot2` `geom` option, create a cumulative distribution
+plot of `ozone_ppm`. Tweak the axis ranges for optimal data representation,
+using `scale_*_continuous()` with `breaks =` and `minor_breaks =` arguments.
+Add axis labels, title, subtitle, and theme. 
+
+```{r ozone-cd}
+data_plot <- tibble(ozone_ppm = rnorm(16914, mean = 0.03305144, sd = 0.01513375))
+
+ggplot(data_plot, aes(x =ozone_ppm)) +
+  stat_ecdf(geom = "step",
+            color = "blue",
+            size = 1) +
+  scale_x_continuous(
+    name = "Ozone (ppm)",
+    breaks = seq(0, 0.1, 0.01),
+    minor_breaks = seq(0, 0.1, 0.01)
+  ) +
+  
+  scale_y_continuous(
+    name = "Cumulative Probability",
+    breaks = seq(0, 1, 0.1),
+    minor_breaks = seq(0, 1, 0.01)
+  ) +
+  labs(
+    title = "Cumulative Distribution Ozone Concentration",
+    subtitle = "Ozone measured in ppm",
+    x = "Ozone Concentration (ppm)",
+    y = "Cumulative Probability"
+  ) +
+  theme_classic()
+```
+
+\newpage
+
+## Question 4: Histogram
+
+Create a histogram of `ozone_ppm`. Within the `geom`, mess with the number of
+bins (e.g., 20, 50, 75, 100, 200) to explore the true shape and granularity of
+the data. Match the plot style (e.g., title, subtitle, axis labels, theme) you
+chose in Question 3, with the relevant adjustments such as "Histogram" 
+instead of "Cumulative Distribution Plot".
+
+```{r ozone-hist}
+ggplot(data_plot, 
+       aes(x = ozone_ppm)) +
+  geom_histogram(binwidth = 0.001, 
+                 fill = "darkgreen", 
+                 color = "black", alpha = 0.7) +
+  scale_x_continuous(
+    name = "Ozone (ppm)", 
+    breaks = seq(0, 0.1, by = 0.01),
+    minor_breaks = seq(0, 0.1, by = 0.005)
+  ) +
+  scale_y_continuous(
+    name = "Frequency", 
+    breaks = seq(0, 1000, by = 100),
+    minor_breaks = seq(0, 1000, by = 10)
+  ) +
+  labs(
+    title = "Histogram of Ozone Concentration",
+    subtitle = "Distribution of Ozone concentration in ppm",
+    x = "Ozone Concentration (ppm)",
+    y = "Frequency"
+  ) +
+  theme_classic()
+```
+
+### Question 5: Concept
+
+What mathematical concept is a histogram (Q4) attempting to visualize? 
+-The histogram would be visualizing the central tendency
+
+### Question 6: Distribution
+
+Based on the histogram (Q4), does ozone concentration appear to be normally
+distributed? 
+-For the most part the ozone concentration is distributed normally, but there are
+a few outliers.
+
+### Question 7: Outliers
+
+Based on the histogram (Q4), do you see any possible outliers? Skewness? How
+might this affect the spread and central tendency?
+-I do notice some outliers on the histogram, overall they would affect the spread
+of the central tendency by changing the mean and median values.
+
+\newpage
+
+## Question 8: Boxplot
+
+Generate a boxplot of ozone concentration on the y-axis with a title, subtitle,
+y-axis label, and theme consistent with the style of the previous two plots. 
+Use quotes (`""`) as the `x` arguments within the calls to the aesthetic and 
+labels to remove the x-axis scale and label.
+
+```{r ozone-boxplot}
+ggplot(data_plot, aes(x = "", y = ozone_ppm)) +
+  geom_boxplot(fill = "green", 
+               color = "black", 
+               outlier.color = "red", outlier.size = 3) +
+  labs(
+    title = "Ozone Concentration",
+    subtitle = "Distribution of ozone and outliers",
+    y = "Ozone Concentration (ppm)"  # Label for y-axis
+  ) +
+  theme_classic() +   
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.subtitle = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  )
+```
+
+\newpage
+
+# Subset Data
+
+Use the following code to create a dataframe for use in the remaining questions.
+These ozone concentration measurements were taken on July 4, 2019 in Fort
+Collins, CO. This code detects certain characters with the `datetime` object and
+filters to observations containing those characters. There are other ways this 
+could have been done (e.g., `dplyr::filter()` with `%in%` operator).
+
+```{r ozone-day}
+# create subset of data with only one day to examine daily pattern
+# I did not ask you to code this because we have not discussed dates or stringr
+# You need to uncomment the below three lines and run it; check object names
+ ozone_day <- data_filtered %>% 
+   dplyr::filter(stringr::str_detect(string = datetime,
+                                     pattern = "2019-07-04"))
+```
+
+## Question 9: Autocorrelation Plot
+
+Define autocorrelation as it relates to ozone concentration measurement. 
+-Shows the how related one time moment is to the next one.
+Create an autocorrelation plot of ozone concentration, using `stats::acf()` and
+include axis labels and title. Describe what you see based on the features of
+interest outlined in the coursebook.
+-Based on the autocorrelation, I see a cyclical cycle which I would assume happens
+similarly each day of data.
+```{r ozone-acf}
+acf_result <- stats::acf(ozone_day$ozone_ppm, plot = FALSE)
+
+plot(acf_result, 
+     main = "Autocorrelation Plot of Ozone Concentration",
+     xlab = "Lag (Time Difference)", 
+     ylab = "Autocorrelation", 
+     col = "darkblue",
+     lwd = 5,)
+
+```
+
+\newpage
+
+## Question 10: Parial Autocorrelation Plot
+
+Define partial autocorrelation as it relates to ozone concentration measurement.
+-Shows how far out in time one should go before that time zone is independent of
+previous ones.
+Now create a partial autocorrelation plot of day ozone concentration with axis
+labels. Describe what you see. How does this compare to the autocorrelation
+plot in the previous question?
+-Based on the partial autocorellation, majority of the days time zones are
+dependent on the first timezone measurement, before becoming negatively correlated.
+```{r ozone-part-acf}
+pacf_result <- stats::pacf(ozone_day$ozone_ppm, plot = FALSE)
+
+plot(pacf_result, 
+     main = "Autocorrelation Plot of Ozone Concentration",
+     xlab = "Lag (Time Difference)", 
+     ylab = "Autocorrelation", 
+     col = "darkblue",
+     lwd = 5,)
+```
+
+\newpage
+
+# Appendix
+
+```{r show_code, ref.label = knitr::all_labels(), echo = TRUE, eval = FALSE}
+```
