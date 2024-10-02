@@ -1,0 +1,211 @@
+---
+title: 'MECH476: Engineering Data Analysis in R'
+subtitle: 'Chapter 6 Homework: Strings, Dates, and Tidying' 
+author: Maxwell Grisham
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+output: html document
+---
+
+```{r global-options, include=FALSE}
+# set global options for figures, code, warnings, and messages
+knitr::opts_chunk$set(fig.width=6, fig.height=4, fig.path="../figs/",
+                      echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+# Chapter 6 Homework
+
+For this homework assignment, you will use data from Twitter that include
+tweets (2011 to 2017) from Colorado senators, which can be downloaded from Canvas.
+Just FYI---some tweets were cut off before Twitter's character limit; 
+just work with the data you have. The original data are from
+[FiveThirtyEight](https://github.com/fivethirtyeight/data/tree/master/twitter-ratio).
+
+When a question asks you to make a plot, remember to set a theme, title, 
+subtitle, labels, colors, etc. It is up to you how to personalize your plots, 
+but put in some effort and think about making the plotting approach consistent 
+throughout the document. For example, you could use the same theme for all
+plots. I also like to use the subtitle as a place for the main summary for the
+viewer.
+
+\newpage
+
+## Question 1: Hashtags
+
+Within a pipeline using the Colorado-only tweet data, select `text` variable 
+and use `stringr::str_extract_all()` with a pattern of `"#(\\d|\\w)+"` to
+extract all of the hashtags from the tweets. This will return a list with one
+element. How many hashtags were used by Colorado senators?
+-2569 hashtags were used by colorado se
+
+```{r hashtags}
+library(readr)
+library(tidyverse)
+library(ggplot2)
+
+data_raw <- read_csv("/Users/Maxwell Grisham/Documents/Grisham-MECH476/senators.csv")
+data_filtered <- data_raw %>%
+  filter(state == "CO") %>%
+  select(text) %>%
+  mutate(hashtags = str_extract_all(text, "#(\\d|\\w)+"))
+total_hashtags <- data_filtered[sapply(data_filtered, function(x) length(x) > 0)] %>%
+  select(hashtags) %>%
+  ungroup()
+  
+
+```
+
+## Question 2: Fires
+
+Colorado is on fire right now and has experienced many wildfires over the years.
+Let's examine senators' tweet activity related to wildfires based on hashtags.
+Using the character vector of hashtags you extracted in Question 1, search for
+the hashtags that include "fire" or "wildfire". How many hashtags included
+"fire"? How many included "wildfire"?
+-There were 27 total
+
+```{r hashtag-fire}
+data_total_fire <- total_hashtags %>%
+  filter(str_detect(hashtags, "fire|wildfire")) %>%
+  unlist()
+
+data_fire <- total_hashtags %>%
+  filter(str_detect(hashtags, "fire"))
+
+data_wildfire <- total_hashtags %>%
+  filter(str_detect(hashtags, "wildfire"))
+  
+```
+
+## Question 3: Wildfires 
+
+Now, let's look at general tweets concerning wildfires. First, subset the data
+to a dataframe that includes tweets containing the word "wildfire" and their 
+corresponding timestamp and user. Specifically, (a) select `text`, `date`, and
+`user` and (b) filter to text strings that include the word "wildfire" using
+`dplyr::filter()` and `stringr::str_detect()`.
+
+```{r wildfire}
+data_wildfire_time <- data_raw %>%
+  filter(state == "CO") %>%
+  mutate(date = lubridate::mdy_hm(created_at),
+         hour_co = lubridate::hour(lubridate::with_tz(date, tzone = "America/Denver")),
+         year = lubridate::year(date),
+         month = lubridate::month(date),
+         week = lubridate::week(date)) %>%
+  select(-(c(url, created_at, bioguide_id))) %>%
+  select(text, date, user) %>%
+  filter(str_detect(text, "wildfire"))
+
+```
+
+## Question 4: Senators
+
+Which Colorado senator tweets more about wildfires? 
+-Senator Bennet tweets more about wildfires
+
+```{r wildfire-senator}
+wildfire_senator <- data_raw %>%
+  select(text, state, user) %>%
+  filter(state == "CO") %>%
+  filter(str_detect(wildfire_senator$text, "wildfire"))
+
+senators <- table(wildfire_senator$user)
+print(senators)
+```
+
+## Question 5: Timing
+
+Using the same `wildfires` dataframe, create a summary table that shows the 
+number of tweets containing the word "wildfire" by year (2011-2017). Which year
+has the most tweets about wildfires? Why might this be the case? (Hint: Think
+about what happened in the previous year.)
+- 2013 had the most tweets about wildfires.
+```{r wildfire-timing}
+wildfire_timing <- data_raw %>%
+  filter(state == "CO") %>%
+  mutate(date = lubridate::mdy_hm(created_at),
+         hour_co = lubridate::hour(lubridate::with_tz(date, tzone = "America/Denver")),
+         year = lubridate::year(date),
+         month = lubridate::month(date),
+         week = lubridate::week(date)) %>%
+  select(-(c(url, created_at, bioguide_id))) %>%
+  filter(str_detect(text, "wildfire")) %>%
+  select(year) %>%
+  table()
+
+
+  
+
+  
+```
+
+\newpage
+
+## Question 6: Monthly tweets
+
+Create a bar chart that answers the question: Are Colorado senators more active
+at a certain time of year? Hints: Convert `month` to a factor. Fill by `user`.
+-Rate of tweets increases in September.
+```{r tweet-count-month}
+tweet_count_month <- data_raw %>%
+  filter(state == "CO") %>%
+  mutate(date = lubridate::mdy_hm(created_at),
+         hour_co = lubridate::hour(lubridate::with_tz(date, tzone = "America/Denver")),
+         year = lubridate::year(date),
+         month = lubridate::month(date),
+         week = lubridate::week(date)) %>%
+  select(-(c(url, created_at, bioguide_id))) %>%
+  select(user,text,date,month)
+
+ggplot(data = tweet_count_month,
+       aes(x = month,
+           fill = user)) +
+  geom_bar() +
+  scale_x_continuous(breaks = seq(1, 12, by = 1)) + 
+  labs(title = "Tweets by month",
+       x = "Month",
+       y = "Number of Tweets") +
+  theme_classic()
+
+
+  
+  
+```
+
+\newpage
+
+## Question 7: Hourly tweets
+
+Create a histogram of tweets by hour of day to visualize when our senators are
+tweeting. 
+
+```{r tweet-count-hour}
+tweet_plot <- data_raw %>%
+  select(created_at, state) %>%
+  filter(.data$state == "CO") %>%
+  select(created_at) 
+  
+
+tweet_time <- tweet_plot %>%
+  unlist() %>%
+  mdy_hm() %>%
+  hour()
+
+ggplot(data = tweet_plot, aes(x = tweet_time)) +
+  geom_bar(fill = "blue") +
+  labs(x = "time of day",
+       y = "amount of tweets") +
+  scale_x_discrete(limits = as.character(0:23)) +
+  theme_classic()
+  
+
+
+
+```
+
+\newpage
+
+# Appendix
+
+```{r show_code, ref.label = knitr::all_labels(), echo = TRUE, eval = FALSE}
+```
