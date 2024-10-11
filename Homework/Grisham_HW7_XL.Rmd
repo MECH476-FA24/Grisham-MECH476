@@ -1,0 +1,309 @@
+---
+title: 'MECH476: Engineering Data Analysis in R'
+subtitle: 'Chapter 7 Homework: Multivariate Exploratory Data Analysis' 
+author: 'Student Name'
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+output: pdf_document
+---
+
+```{r global-options, include=FALSE}
+# set global options for figures, code, warnings, and messages
+knitr::opts_chunk$set(fig.width=6, fig.height=4, fig.path="../figs/",
+                      echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+# Load packages
+
+```{r load-packages, message=FALSE}
+# load packages for current session
+library(tidyverse)
+library(readr)
+library(ggplot2)
+library(janitor)
+```
+
+# Chapter 7 Homework
+
+In [Chapter 5](https://smogdr.github.io/edar_coursebook/eda1.html#cumulative-distribution-plot), we briefly explored data on the salaries of engineering
+graduates from the National Science Foundation 2017 [National Survey of College Graduates](https://www.nsf.gov/statistics/srvygrads/) from a univariate
+perspective. Now, let's explore the relationships between multiple variables. 
+
+When a question asks you to make a plot, remember to set a theme, title, 
+subtitle, labels, colors, etc. It is up to you how to personalize your plots, 
+but put in some effort, and make the plotting approach consistent throughout
+the document. For example, you could use the same theme for all plots. I also
+like to use the subtitle as a place for the main summary for the viewer.
+
+\newpage
+
+## Question 1: Data wrangling
+
+Within a pipeline, import the data from the .csv file, convert all column names
+to lowercase text (either "manually" with `dplyr::rename()`, or use
+[`clean_names()` from the `janitor` package](https://rdrr.io/cran/janitor/man/clean_names.html)), convert `gender`
+from "numeric" to "factor", and drop any and all observations with `salary` 
+recorded as 0. Assign this to a dataframe object with a meaningful name. 
+
+```{r import-data}
+# import and tidy salary data
+data_raw <- read_csv("/Users/Maxwell Grisham/Documents/Grisham-MECH476/ME_salaries.csv") 
+data_clean <- data_raw %>%
+  clean_names() %>%
+  filter(salary > 0)
+data_clean$gender <- factor(data_clean$gender)  #XL: You can use pipe and mutate to combine this line of code with your former code. %>% mutate(gender = factor(gender))
+```
+
+How many observations have a 0 (zero) value for salary? Note: The last question asked you to remove these observations from the resultant data frame.
+-15 observations with a zero value for salary.
+
+```{r salary-zero}
+# number of observations with salary as 0 
+zero_salary <- nrow(data_raw) - nrow(data_clean) #XL: Is there any NAs in your data_raw? If yes, this calculation will include NAs in your result. You can use filter(salary == 0) %>% nrow().
+zero_salary
+```
+
+What are the levels in `gender`? (Ignore the fact that the observations
+refer to "biological sex", not "gender". *Gender* is now recognized as a fluid
+term with more than two options; *biological sex* - what was assigned at birth - 
+is binary term).
+-There are two levels "F" and "M"
+```{r gender-levels}
+# number of factor levels
+levels(data_clean$gender)
+```
+
+## Question 2: Univariate EDA
+
+Using what you learned in Chapter 5, generate basic plots and/or descriptive 
+statistics to explore `age`, `gender`, and `salary`. List whether each variable
+is continuous or categorical, and explain how and why you adjusted your EDA
+approach accordingly.
+
+-I have made comparisons focusing on salary and age with the gender being the fill, 
+salary and age are continuous variables while gender is a categorical variable.
+
+```{r univariate-eda, include=TRUE}
+# univariate eda
+data_plot <- data_raw %>%
+  clean_names() %>%
+  filter(salary > 0)
+
+plot1 <- ggplot(data = data_plot,
+       aes(x = age,
+       fill = gender)) +
+  geom_histogram() +
+  theme_minimal()
+plot1
+
+plot2 <- ggplot(data = data_plot,
+                aes(x = age,
+                    y = salary,
+                    color = gender)) +
+  geom_point(alpha = 0.5) +
+  theme_minimal()
+
+plot2
+
+plot3 <- ggplot(data = data_plot,
+                aes(x = salary,
+                    fill = gender)) + 
+  geom_histogram(binwidth = 10000) +
+  theme_minimal()
+plot3
+
+plot4 <- ggplot(data = data_plot,
+                aes(y = gender,
+                    x = salary,
+                    fill = gender)) + 
+  geom_boxplot()
+```
+
+\newpage
+
+## Question 3: Multivariate histograms
+
+Create a histogram of `salary`, faceted by `gender`. Add `bins = 50` and 
+`color = "lightgrey"`.
+
+```{r hist-salary}
+# histogram of salaries split by gender
+ggplot(data = data_plot,
+                aes(x = salary,
+                    fill = gender)) + #XL: Please try to use facet, e.g., facet_wrap(~gender), even though fill = gender has the same function here.
+  geom_histogram(binwidth = 10000) +
+  theme_minimal()
+```
+
+Create a histogram of `age`, faceted by `gender`. Add `bins = 50` and 
+`color = "lightgrey"`.
+
+```{r hist-age}
+# histogram of ages split by gender
+ggplot(data = data_plot,
+       aes(x = age,
+       fill = gender)) +     #XL: Please try to use facet, e.g., facet_wrap(~gender), even though fill = gender has the same function here.
+  geom_histogram() +
+  theme_minimal()
+```
+
+\newpage
+
+## Question 4: Multivariate boxplots
+
+Create a boxplot of `salary`, faceted by `gender`. Use `oulier.shope = 1` to 
+better visualize the outliers.
+
+```{r salary-box}
+# boxplots of salary data by gender
+ggplot(data = data_plot,
+                aes(x = gender,
+                    y = salary,
+                    fill = gender)) + 
+  geom_boxplot(outlier.shape = 1) +
+  facet_wrap(~ gender)
+  theme_minimal()
+```
+
+Create a boxplot of `age`, faceted by `gender`.
+
+```{r age-box}
+# boxplots of age data by gender
+ggplot(data = data_plot,
+                aes(x = gender,
+                    y = age,
+                    fill = gender)) + 
+  geom_boxplot(outlier.shape = 1) +
+  facet_wrap(~ gender) +
+  theme_minimal()
+```
+
+\newpage
+
+## Question 5: Scatterplot and correlation
+
+Create a scatterplot of `age` (x-axis) and `salary`, differentiating by 
+`gender`. 
+
+```{r multivar-scatter}
+# scatterplot of salary across age by gender
+ggplot(data = data_plot,
+       aes(x = age,
+           y = salary,
+           color = gender)) +     #XL: Many points are overlaped on this plot, so it would be nice to use facet to saperate this plot into two panels by gender.
+  geom_point(alpha = 0.5) +
+  theme_minimal()
+```
+
+*Bonus point*: Is there a correlation between an engineer's salary and age?
+What is the estimated Pearson correlation coefficient *r*? Run a formal test.
+
+```{r corr-test}
+# correlation test
+#XL: data_plot %>%
+#XL:   group_by(gender) %>%
+#XL:   summarise(correlation = cor(age, salary))
+```
+
+\newpage
+
+## Question 6: Cumulative distribution function
+
+Plot the cumulative distribution function of `salary` by `gender`. Adjust the
+x-axis with `scale_x_log10(limits = c(5e4, 5e5))` to zoom in a bit. What do you
+notice about the salaries for men and women? Hint: Remember there are greater
+differences the farther up you go on a log scale axis.
+
+```{r salary-ecdf}
+# plot cdf of salary by gender
+ggplot(data = data_plot, aes(x = salary, color = gender)) +
+  stat_ecdf(geom = "step") +
+  scale_x_log10(limits = c(5e4, 5e5)) +
+  theme_minimal() +
+  labs(x = "Salary (log scale)", y = "Cumulative Probability", 
+       title = "CDF of Salary by Gender")
+```
+
+## Question 7: Quantiles
+
+Calculate the quantiles of `salary` by `gender`. You can either subset the data
+with `dplyr::filter()` and dataframe assignment, or you can group by, summarize
+by quantile, and ungroup. 
+
+*Bonus point*: Assign the output to a dataframe, and use inline code to call
+individual values when answering the following questions. Do not let R use
+scientific notation in the text output; check the knitted document.
+
+```{r salary-quantiles, message=FALSE}
+# calculate quantiles of salary by gender
+salary_male <- data_clean %>%
+  filter(gender == "M")
+salary_female <- data_clean %>%
+  filter(gender == "F")
+
+male_quant <- quantile(salary_male$salary, probs = seq(0, 1, by = 0.25))
+female_quant <- quantile(salary_female$salary, probs = seq(0, 1, by = 0.25))
+
+print(male_quant)
+print(female_quant)
+
+```
+
+What is the difference in salary between men and women at the median? 
+-difference is $7000
+
+  * Median salary for women is
+  -$90000
+  * Median salary for men is 
+  -$97000
+  * The difference at the median is 
+  -$7000
+  
+At the top percentile (maximum)? 
+
+  * Maximum salary for women is 
+  -$350000
+  * Maximum salary for men is 
+  -1027653
+  * The difference at the maximum is 
+  -$677653
+
+Do you think there is a salary difference by gender across the pay scale? What
+other information would you need to test your hypothesis?
+
+-I do believe there is a salary difference across the pay scale, the other information 
+I would need is a more equal division between males and females, as well as take
+into account how long they have been working in the field.
+## Question 8: Hypothetical analysis
+
+Think about what other variables you would like to include in an hypothetical
+analysis. From your perspective, what are the most important individual,
+family, and workforce factors related to salary---beyond gender and age?
+-Amount of experience, race/ethnicity, education level, and location.
+\newpage
+
+## Question 9: Recreate plot
+
+Recreate this plot with the `mpg` dataset. Remember to use `?mpg` for 
+information on the dataset and the variables. How would you describe the 
+correlation between the independent variable and dependent variable? Do you
+see any patterns when considering the third variable?
+
+(View R Markdown PDF for image)
+
+```{r mpg-plot}
+# call mpg pdf - you need to recreate it 
+ggplot(data = mpg, aes(x = displ, y = hwy, color = class)) +
+  stat_ecdf(geom = "smooth")
+  #geom_smooth(se = FALSE, aes(group = class), method = "loess") +  # Add smoothed lines without confidence intervals
+  #geom_point() +  # Add points for better visibility
+  theme_minimal() 
+
+knitr::include_graphics("./mpg-ch7-plot.pdf")
+```
+
+\newpage
+
+# Appendix
+
+```{r show_code, ref.label = knitr::all_labels(), echo = TRUE, eval = FALSE}
+```
