@@ -50,7 +50,7 @@ data_raw <- read_csv("/Users/Maxwell Grisham/Documents/Grisham-MECH476/ME_salari
 data_clean <- data_raw %>%
   clean_names() %>%
   filter(salary > 0)
-data_clean$gender <- factor(data_clean$gender)  #XL: You can use pipe and mutate to combine this line of code with your former code. %>% mutate(gender = factor(gender))
+data_clean$gender <- factor(data_clean$gender)  #XL: You can use pipe and mutate to combine this line of code with your former code. %>% mutate(gender = as.factor(gender))
 ```
 
 How many observations have a 0 (zero) value for salary? Note: The last question asked you to remove these observations from the resultant data frame.
