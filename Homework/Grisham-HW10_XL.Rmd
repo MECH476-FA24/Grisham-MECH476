@@ -86,8 +86,8 @@ Group the `blanks` data frame by `id` and calculate mean, median, and standard d
 blanks_summary <- blanks %>%
   group_by(id) %>%
   summarise(
-    mean_mass = mean(mass_mg),  #XL: please pay attention to the  **precision**. Use the `round()` function to avoid reporting more than 0.1 $\mu g$ of precision (or 0.0001 $mg$). For example, round(mass_g, digits = 6). Same for Question 3.
-    median_mass = median(mass_mg),  #XL: For example, mean_mass = round(mean(mass_mg), 6)
+    mean_mass = mean(mass_mg),  #XL: please pay attention to the  **precision**. Use the `round()` function to avoid reporting more than 0.1 $\mu g$ of precision (or 0.0001 $mg$). For example, round(mean(mass_mg), digits = 3). Same for Question 3.
+    median_mass = median(mass_mg),  
     sd_mass = sd(mass_mg)
   )
 blanks_summary
